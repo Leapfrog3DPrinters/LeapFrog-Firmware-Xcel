@@ -622,11 +622,11 @@ void process_commands()
       //  st_synchronize();
       //}
 
+      // Home Y
+      if (home_all_axis || homeY) HOMEAXIS(Y); 
+      
       // Home X
       if (home_all_axis || homeX) HOMEAXIS(X);
-
-      // Home Y
-      if (home_all_axis || homeY) HOMEAXIS(Y);
 
       // Home Z 
       // Edb
@@ -708,11 +708,11 @@ void process_commands()
       // st_synchronize();
       //}
 
-      // Home X
-      if (home_all_axis || homeX) HOMEAXIS(X);
-
       // Home Y
       if (home_all_axis || homeY) HOMEAXIS(Y);
+      
+      // Home X
+      if (home_all_axis || homeX) HOMEAXIS(X);
 
       // Set the X position and add M206
       if (code_seen(axis_codes[X_AXIS])) {
