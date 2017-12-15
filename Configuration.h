@@ -175,14 +175,14 @@ const bool Z_ENDSTOPS_INVERTING = false; // set to true to invert the logic of t
 
 // default settings
 
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {55.55555555, 55.5555555555, 9600.0/5, 198.60}  // default steps, X steps terug naar 1/2 (driver op 2000 ipv 4000)
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {27.7777777777, 27.7777777777, 9600.0/5, 198.60}  // default steps, X steps terug naar 1/2 (driver op 2000 ipv 4000)
 #define DEFAULT_MAX_FEEDRATE          {200, 200, 10, 45}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {500,500,300,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
 #define DEFAULT_ACCELERATION          500    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  7000   // X, Y, Z and E max acceleration in mm/s^2 for r retracts
 
-// Jerk
+// Jerk 
 #define DEFAULT_XYJERK                5.0    // (mm/sec)   std: 15.0
 #define DEFAULT_ZJERK                 1     // (mm/sec)
 #define DEFAULT_EJERK                 60.0    // (mm/sec)

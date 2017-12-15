@@ -273,8 +273,9 @@ void solenoidpin() // Om solenoid-pin te definieren en laag te maken TvdG
 {
   SET_OUTPUT(SOL2_PIN);
   SET_OUTPUT(SOL1_PIN);
-  analogWrite(SOL1_PIN, 0);
-  analogWrite(SOL2_PIN, 0);
+  digitalWrite(SOL1_PIN, LOW);  // Implementation of logic for bi-directional solenoid for auto bed-levelling.
+  digitalWrite(SOL2_PIN, LOW); 
+  
 }
 
 void setup()
@@ -627,7 +628,8 @@ void process_commands()
       
       // Home X
       if (home_all_axis || homeX) HOMEAXIS(X);
-
+         
+          
       // Home Z 
       // Edb
       if (home_all_axis || homeZ) 
@@ -636,15 +638,19 @@ void process_commands()
         feedrate = 120;
         line_to_destination();
         st_synchronize();
-        analogWrite(SOL2_PIN, 255);
+   
+        
+        // Implementation of logic for bi-directional solenoid for auto bed-levelling.
+        digitalWrite(SOL1_PIN, HIGH);   // Direction of Solenoid1 is extending of the Z-probe to touch the bed. 
         delay(1000);
-        analogWrite(SOL2_PIN, 216);
-        delay(800);
+        digitalWrite(SOL1_PIN, LOW);
         HOMEAXIS(Z);
-        analogWrite(SOL2_PIN, 0);
+        delay(800);
+        digitalWrite(SOL2_PIN, HIGH);   // Direction of Solenoid2 is retracting of the Z-probe back.
+        delay(1000); 
+        digitalWrite(SOL2_PIN, LOW);
         
       }
-
 
       sync_plan_position();
 
@@ -662,20 +668,34 @@ void process_commands()
     }
     #ifdef ENABLE_ZPROBE
     case 29: // G29 - Test z_probe solenoid
-      analogWrite(SOL2_PIN, 255);
-      delay(1000);
-      analogWrite(SOL2_PIN, 216);
-      delay(3000);
-        analogWrite(SOL2_PIN, 0);
-      break;
+              
+    // Implementation of logic for bi-directional solenoid for auto bed-levelling. 
+    digitalWrite(SOL1_PIN, HIGH);     // Direction of Solenoid1 is extending of the Z-probe to touch the bed. 
+    delay(1000);
+    digitalWrite(SOL1_PIN, LOW);
+    delay(800);
+    digitalWrite(SOL2_PIN, HIGH);     // Direction of Solenoid2 is retracting of the Z-probe back.
+    delay(1000);
+    digitalWrite(SOL2_PIN, LOW);
+    delay(1000);
+    break;
+        
     case 30: // G30 - solenoid uitklappen
-      analogWrite(SOL2_PIN, 255);
-      delay(1000);
-      analogWrite(SOL2_PIN, 216);
-      break;
+             
+    // Implementation of logic for bi-directional solenoid for auto bed-levelling. 
+    digitalWrite(SOL1_PIN, HIGH);  
+    delay(1000);
+    digitalWrite(SOL1_PIN, LOW);
+    break;    
+     
     case 31: // G31 - solenoid inklappen
-      analogWrite(SOL2_PIN, 0);
-      break;
+        
+    // Implementation of logic for bi-directional solenoid for auto bed-levelling.
+    digitalWrite(SOL2_PIN, HIGH);
+    delay(1000);
+    digitalWrite(SOL2_PIN, LOW);
+    break;
+      
     case 32: // G32 - Z Probe at 3 points place the bed straight
     {
 
@@ -707,13 +727,14 @@ void process_commands()
       //  line_to_destination();
       // st_synchronize();
       //}
-
+      
       // Home Y
       if (home_all_axis || homeY) HOMEAXIS(Y);
       
       // Home X
-      if (home_all_axis || homeX) HOMEAXIS(X);
-
+      if (home_all_axis || homeX) HOMEAXIS(X); 
+      
+     
       // Set the X position and add M206
       if (code_seen(axis_codes[X_AXIS])) {
         float v = code_value();
@@ -734,12 +755,18 @@ void process_commands()
         feedrate = 120;
         line_to_destination();
         st_synchronize();
-        analogWrite(SOL2_PIN, 255);
+        
+              
+        // Implementation of logic for bi-directional solenoid for auto bed-levelling.
+        digitalWrite(SOL1_PIN, HIGH);
         delay(1000);
-        analogWrite(SOL2_PIN, 216);
-        delay(800);
+        digitalWrite(SOL1_PIN, LOW);
         HOMEAXIS(Z);
-        analogWrite(SOL2_PIN, 0);
+        delay(800);
+        digitalWrite(SOL2_PIN, HIGH);
+        delay(1000); 
+        digitalWrite(SOL2_PIN, LOW);
+
       }
 
       // Set the Z position and add M206
