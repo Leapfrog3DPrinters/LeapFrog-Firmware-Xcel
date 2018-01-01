@@ -1600,10 +1600,15 @@ float zprobe(const float& x, const float& y, const float& z) {
   }
   st_synchronize();
 
-  analogWrite(SOL2_PIN, 255);
+    
+  digitalWrite(SOL1_PIN, HIGH);   // Extending of the Z-probe
   delay(1000);
-  analogWrite(SOL2_PIN, 216);
-  delay(800);
+  digitalWrite(SOL1_PIN, LOW);
+  delay(800); 
+  
+ 
+
+  
       /*SERIAL_PROTOCOLPGM("Starting Z Probe at (");
       SERIAL_PROTOCOL(x);
       SERIAL_PROTOCOLPGM(",");
@@ -1632,7 +1637,14 @@ st_synchronize();
       SERIAL_PROTOCOL(rz);
       SERIAL_PROTOCOLLN(")");*/
 endstops_hit_on_purpose();
-analogWrite(SOL2_PIN, 0);
+
+
+
+
+    digitalWrite(SOL2_PIN, HIGH);
+    delay(800); 
+    digitalWrite(SOL2_PIN, LOW);
+
 enable_endstops(false);
 return rz;
 
