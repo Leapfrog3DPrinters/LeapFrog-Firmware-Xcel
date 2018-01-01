@@ -123,14 +123,14 @@ unsigned char FanSpeed=0;
 int Z_STEPPER_SINGLE = 0;
 bool door_status = false;
 
-// Extruder offset, only in XY plane
+/*// Extruder offset, only in XY plane
 #if EXTRUDERS > 1
   float extruder_offset[2][EXTRUDERS] = {
   #if defined(EXTRUDER_OFFSET_X) && defined(EXTRUDER_OFFSET_Y)
     EXTRUDER_OFFSET_X, EXTRUDER_OFFSET_Y
   #endif
   };
-#endif
+#endif*/
 
 //===========================================================================
 //=============================private variables=============================
@@ -498,7 +498,7 @@ XYZ_CONSTS_FROM_CONFIG(signed char, home_dir,  HOME_DIR);
 
 static void axis_is_at_home(int axis) 
 {
-  current_position[axis] = base_home_pos(axis) + add_homeing[axis] + extruder_offset[axis][active_extruder];
+  current_position[axis] = base_home_pos(axis) + add_homeing[axis]; //+ extruder_offset[axis][active_extruder];
   min_pos[axis] =          base_min_pos(axis) + add_homeing[axis];
   max_pos[axis] =          base_max_pos(axis) + add_homeing[axis];
 }
@@ -1107,12 +1107,12 @@ void process_commands()
       // Old version used an offset that was depicted in mm to move. New system uses offset coordinates
       // Which means that to stay with the old notation we need to invert the values.
       // Movement offset = -Extruder coordinates 
-      if (code_seen('X')) extruder_offset[X_AXIS][1] = -code_value();
-      if (code_seen('Y')) extruder_offset[Y_AXIS][1] = -code_value();
+      //if (code_seen('X')) extruder_offset[X_AXIS][1] = -code_value();
+      //if (code_seen('Y')) extruder_offset[Y_AXIS][1] = -code_value();
       SERIAL_PROTOCOLPGM("X: ");
-      SERIAL_PROTOCOL(-extruder_offset[X_AXIS][1]);
+      //SERIAL_PROTOCOL(-extruder_offset[X_AXIS][1]);
       SERIAL_PROTOCOLPGM(" Y: ");
-      SERIAL_PROTOCOLLN(-extruder_offset[Y_AXIS][1]);
+      //SERIAL_PROTOCOLLN(-extruder_offset[Y_AXIS][1]);
       break;
     case 82:
       axis_relative_modes[3] = false;
@@ -1206,9 +1206,9 @@ void process_commands()
       SERIAL_PROTOCOLPGM(MSG_M115_REPORT);
       SERIAL_PROTOCOL(" Extruder offset ");
       SERIAL_PROTOCOLPGM("X: ");
-      SERIAL_PROTOCOL(-extruder_offset[X_AXIS][1]);
+      //SERIAL_PROTOCOL(-extruder_offset[X_AXIS][1]);
       SERIAL_PROTOCOLPGM(" Y: ");
-      SERIAL_PROTOCOLLN(-extruder_offset[Y_AXIS][1]);
+      //SERIAL_PROTOCOLLN(-extruder_offset[Y_AXIS][1]);
       break;
     case 120: // M120
       enable_endstops(false);
@@ -1444,14 +1444,14 @@ void clamp_to_software_endstops(float target[3])
 {
   if (min_software_endstops) 
   {
-    if (target[X_AXIS] < (min_pos[X_AXIS] + extruder_offset[X_AXIS][active_extruder])) target[X_AXIS] = min_pos[X_AXIS] + extruder_offset[X_AXIS][active_extruder];
-    if (target[Y_AXIS] < (min_pos[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder])) target[Y_AXIS] = min_pos[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder];
+    if (target[X_AXIS] < (min_pos[X_AXIS] /*+ extruder_offset[X_AXIS][active_extruder]*/)) target[X_AXIS] = min_pos[X_AXIS]; //+ extruder_offset[X_AXIS][active_extruder];
+    if (target[Y_AXIS] < (min_pos[Y_AXIS] /*+ extruder_offset[Y_AXIS][active_extruder]*/)) target[Y_AXIS] = min_pos[Y_AXIS]; //+ extruder_offset[Y_AXIS][active_extruder];
     if (target[Z_AXIS] < min_pos[Z_AXIS] - MAX_ZOFFSET) target[Z_AXIS] = min_pos[Z_AXIS] - MAX_ZOFFSET;
   }
   if (max_software_endstops) 
   {
-    if (target[X_AXIS] > (max_pos[X_AXIS] + extruder_offset[X_AXIS][active_extruder])) target[X_AXIS] = max_pos[X_AXIS] + extruder_offset[X_AXIS][active_extruder];
-    if (target[Y_AXIS] > (max_pos[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder])) target[Y_AXIS] = max_pos[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder];
+    if (target[X_AXIS] > (max_pos[X_AXIS] /*+ extruder_offset[X_AXIS][active_extruder]*/)) target[X_AXIS] = max_pos[X_AXIS]; //+ extruder_offset[X_AXIS][active_extruder];
+    if (target[Y_AXIS] > (max_pos[Y_AXIS] /*+ extruder_offset[Y_AXIS][active_extruder]*/)) target[Y_AXIS] = max_pos[Y_AXIS]; //+ extruder_offset[Y_AXIS][active_extruder];
     if (target[Z_AXIS] > max_pos[Z_AXIS]) target[Z_AXIS] = max_pos[Z_AXIS];
   }
 }
@@ -1768,10 +1768,10 @@ float zprobe_4points_Willem(boolean CorrectionMove) {
     float newZ = 10.0;   //8 -> 10 PR
 
     // ZP_COORDS[4][2] = zprobe(ZP_COORDS[4][0] + extruder_offset[X_AXIS][active_extruder], ZP_COORDS[4][1] + extruder_offset[Y_AXIS][active_extruder], newZ);//midden
-    ZP_COORDS[0][2] = zprobe(ZP_COORDS[0][0] + extruder_offset[X_AXIS][active_extruder], ZP_COORDS[0][1] + extruder_offset[Y_AXIS][active_extruder], newZ);//linksvoor
-    ZP_COORDS[1][2] = zprobe(ZP_COORDS[1][0] + extruder_offset[X_AXIS][active_extruder], ZP_COORDS[1][1] + extruder_offset[Y_AXIS][active_extruder], newZ);//rechtsvoor
-    ZP_COORDS[2][2] = zprobe(ZP_COORDS[2][0] + extruder_offset[X_AXIS][active_extruder], ZP_COORDS[2][1] + extruder_offset[Y_AXIS][active_extruder], newZ);//rechtsachter
-    ZP_COORDS[3][2] = zprobe(ZP_COORDS[3][0] + extruder_offset[X_AXIS][active_extruder], ZP_COORDS[3][1] + extruder_offset[Y_AXIS][active_extruder], newZ);//linksachter
+    ZP_COORDS[0][2] = zprobe(ZP_COORDS[0][0] /*+ extruder_offset[X_AXIS][active_extruder]*/, ZP_COORDS[0][1] /*+ extruder_offset[Y_AXIS][active_extruder]*/, newZ);//linksvoor
+    ZP_COORDS[1][2] = zprobe(ZP_COORDS[1][0] /*+ extruder_offset[X_AXIS][active_extruder]*/, ZP_COORDS[1][1] /*+ extruder_offset[Y_AXIS][active_extruder]*/, newZ);//rechtsvoor
+    ZP_COORDS[2][2] = zprobe(ZP_COORDS[2][0] /*+ extruder_offset[X_AXIS][active_extruder]*/, ZP_COORDS[2][1] /*+ extruder_offset[Y_AXIS][active_extruder]*/, newZ);//rechtsachter
+    ZP_COORDS[3][2] = zprobe(ZP_COORDS[3][0] /*+ extruder_offset[X_AXIS][active_extruder]*/, ZP_COORDS[3][1] /*+ extruder_offset[Y_AXIS][active_extruder]*/, newZ);//linksachter
 
     float aXv = (ZP_COORDS[1][2]-ZP_COORDS[0][2])/(ZP_COORDS[1][0]-ZP_COORDS[0][0]);
     float aXa = (ZP_COORDS[2][2]-ZP_COORDS[3][2])/(ZP_COORDS[2][0]-ZP_COORDS[3][0]);

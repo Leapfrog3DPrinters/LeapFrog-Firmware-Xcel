@@ -33,7 +33,7 @@
 //
 // 1 is 100k thermistor - best choice for EPCOS 100k (4.7k pullup)
 #define TEMP_SENSOR_0 1
-#define TEMP_SENSOR_1 1
+#define TEMP_SENSOR_1 0
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_BED 1
 
