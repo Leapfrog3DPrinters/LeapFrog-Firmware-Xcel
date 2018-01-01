@@ -27,6 +27,9 @@
 #define MOTHERBOARD 1
 #endif
 
+#include "Configuration_adv.h"
+#include "thermistortables.h"
+
 //===========================================================================
 //=============================Thermal Settings  ============================
 //===========================================================================
@@ -78,6 +81,11 @@
 
 
 #endif // PIDTEMP
+
+#define PT_100
+// If defined, use PT100 sensor with adapted table by Maurits Hartman (if it is detected)
+#define HEATER_0_USES_DETECTION
+#define HEATER_1_USES_DETECTION
 
 //this prevents dangerous Extruder moves, i.e. if the temperature is under the limit
 //can be software-disabled for whatever purposes by
@@ -243,6 +251,7 @@ static Vector3d zbasis(0,0,1);
 // Increase the FAN pwm frequency. Removes the PWM noise but increases heating in the FET/Arduino
 #define FAST_PWM_FAN
 
+#include "pt100tables.h"
 #include "Configuration_adv.h"
 #include "thermistortables.h"
 
