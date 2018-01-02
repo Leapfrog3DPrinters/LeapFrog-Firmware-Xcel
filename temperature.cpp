@@ -539,10 +539,10 @@ float analog2temp(int raw, uint8_t e) {
     }
   #endif
   
-  //#ifdef PT_100 
-  float celsius = 0;
+  #ifdef PT_100 
+    float celsius = 0;
     byte i;
-  if (raw < temptable_pt100[0][0])
+    if (raw < temptable_pt100[0][0])
         {
           celsius = (float)temptable_pt100[0][1];
         }
@@ -578,31 +578,8 @@ float analog2temp(int raw, uint8_t e) {
           if (i == temptable_pt100_len) { celsius = PGM_RD_W(temptable_pt100[i - 1][1]); }
         }
         return celsius;
-  //#endif 
-  /*if(heater_ttbl_map[e] != 0)
-  {
-    float celsius = 0;
-    byte i;  
-    short (*tt)[][2] = (short (*)[][2])(heater_ttbl_map[e]);
+  #endif 
 
-    raw = (1023 * OVERSAMPLENR) - raw;
-    for (i=1; i<heater_ttbllen_map[e]; i++)
-    {
-      if (PGM_RD_W((*tt)[i][0]) > raw)
-      {
-        celsius = PGM_RD_W((*tt)[i-1][1]) + 
-          (raw - PGM_RD_W((*tt)[i-1][0])) * 
-          (float)(PGM_RD_W((*tt)[i][1]) - PGM_RD_W((*tt)[i-1][1])) /
-          (float)(PGM_RD_W((*tt)[i][0]) - PGM_RD_W((*tt)[i-1][0]));
-        break;
-      }
-    }
-
-    // Overflow: Set to last value in the table
-    if (i == heater_ttbllen_map[e]) celsius = PGM_RD_W((*tt)[i-1][1]);
-
-    return celsius;
-  }*/
   return ((raw * ((5.0 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
 }
 

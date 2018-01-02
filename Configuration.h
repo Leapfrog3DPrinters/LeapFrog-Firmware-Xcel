@@ -27,9 +27,6 @@
 #define MOTHERBOARD 1
 #endif
 
-#include "Configuration_adv.h"
-#include "thermistortables.h"
-
 //===========================================================================
 //=============================Thermal Settings  ============================
 //===========================================================================
@@ -39,6 +36,10 @@
 #define TEMP_SENSOR_1 0
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_BED 1
+
+#define PT_100
+#define HEATER_0_USES_DETECTION
+#define HEATER_1_USES_DETECTION
 
 // Actual temperature must be close to target for this long before M109 returns success
 #define TEMP_RESIDENCY_TIME 10	// (seconds)
@@ -81,11 +82,6 @@
 
 
 #endif // PIDTEMP
-
-#define PT_100
-// If defined, use PT100 sensor with adapted table by Maurits Hartman (if it is detected)
-#define HEATER_0_USES_DETECTION
-#define HEATER_1_USES_DETECTION
 
 //this prevents dangerous Extruder moves, i.e. if the temperature is under the limit
 //can be software-disabled for whatever purposes by
@@ -251,8 +247,8 @@ static Vector3d zbasis(0,0,1);
 // Increase the FAN pwm frequency. Removes the PWM noise but increases heating in the FET/Arduino
 #define FAST_PWM_FAN
 
-#include "pt100tables.h"
 #include "Configuration_adv.h"
 #include "thermistortables.h"
+#include "pt100tables.h"
 
 #endif //__CONFIGURATION_H

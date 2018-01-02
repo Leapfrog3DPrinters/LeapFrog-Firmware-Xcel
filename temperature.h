@@ -24,7 +24,7 @@
 #include "Marlin.h"
 #include "planner.h"
 #ifdef PID_ADD_EXTRUSION_RATE
-  #include "stepper.h"
+#include "stepper.h"
 #endif
 
 // public functions

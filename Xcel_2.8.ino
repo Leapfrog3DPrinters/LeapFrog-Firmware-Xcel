@@ -123,8 +123,8 @@ unsigned char FanSpeed=0;
 int Z_STEPPER_SINGLE = 0;
 bool door_status = false;
 
-/*// Extruder offset, only in XY plane
-#if EXTRUDERS > 1
+// Extruder offset, only in XY plane
+/*#if EXTRUDERS > 1
   float extruder_offset[2][EXTRUDERS] = {
   #if defined(EXTRUDER_OFFSET_X) && defined(EXTRUDER_OFFSET_Y)
     EXTRUDER_OFFSET_X, EXTRUDER_OFFSET_Y
@@ -1109,9 +1109,9 @@ void process_commands()
       // Movement offset = -Extruder coordinates 
       //if (code_seen('X')) extruder_offset[X_AXIS][1] = -code_value();
       //if (code_seen('Y')) extruder_offset[Y_AXIS][1] = -code_value();
-      SERIAL_PROTOCOLPGM("X: ");
+      //SERIAL_PROTOCOLPGM("X: ");
       //SERIAL_PROTOCOL(-extruder_offset[X_AXIS][1]);
-      SERIAL_PROTOCOLPGM(" Y: ");
+      //SERIAL_PROTOCOLPGM(" Y: ");
       //SERIAL_PROTOCOLLN(-extruder_offset[Y_AXIS][1]);
       break;
     case 82:
@@ -1204,10 +1204,10 @@ void process_commands()
     case 115: // M115 Firmware info string 
       SERIAL_ECHO_START;
       SERIAL_PROTOCOLPGM(MSG_M115_REPORT);
-      SERIAL_PROTOCOL(" Extruder offset ");
-      SERIAL_PROTOCOLPGM("X: ");
+      //SERIAL_PROTOCOL(" Extruder offset ");
+      //SERIAL_PROTOCOLPGM("X: ");
       //SERIAL_PROTOCOL(-extruder_offset[X_AXIS][1]);
-      SERIAL_PROTOCOLPGM(" Y: ");
+      //SERIAL_PROTOCOLPGM(" Y: ");
       //SERIAL_PROTOCOLLN(-extruder_offset[Y_AXIS][1]);
       break;
     case 120: // M120
@@ -1369,7 +1369,7 @@ void process_commands()
           feedrate = next_feedrate;
         }
       }
-      #if EXTRUDERS > 1
+      /*#if EXTRUDERS > 1
         if(tmp_extruder != active_extruder) 
         {
           // Save current position to return to after applying extruder offset
@@ -1388,7 +1388,7 @@ void process_commands()
              prepare_move();
           }
         }
-      #endif
+      #endif*/
       SERIAL_ECHO_START;
       SERIAL_ECHO(MSG_ACTIVE_EXTRUDER);
       SERIAL_PROTOCOLLN((int)active_extruder);
@@ -1444,14 +1444,14 @@ void clamp_to_software_endstops(float target[3])
 {
   if (min_software_endstops) 
   {
-    if (target[X_AXIS] < (min_pos[X_AXIS] /*+ extruder_offset[X_AXIS][active_extruder]*/)) target[X_AXIS] = min_pos[X_AXIS]; //+ extruder_offset[X_AXIS][active_extruder];
-    if (target[Y_AXIS] < (min_pos[Y_AXIS] /*+ extruder_offset[Y_AXIS][active_extruder]*/)) target[Y_AXIS] = min_pos[Y_AXIS]; //+ extruder_offset[Y_AXIS][active_extruder];
+    if (target[X_AXIS] < (min_pos[X_AXIS] /*+ extruder_offset[X_AXIS][active_extruder]*/)) target[X_AXIS] = min_pos[X_AXIS] /*+ extruder_offset[X_AXIS][active_extruder]*/;
+    if (target[Y_AXIS] < (min_pos[Y_AXIS] /*+ extruder_offset[Y_AXIS][active_extruder]*/)) target[Y_AXIS] = min_pos[Y_AXIS] /*+ extruder_offset[Y_AXIS][active_extruder]*/;
     if (target[Z_AXIS] < min_pos[Z_AXIS] - MAX_ZOFFSET) target[Z_AXIS] = min_pos[Z_AXIS] - MAX_ZOFFSET;
   }
   if (max_software_endstops) 
   {
-    if (target[X_AXIS] > (max_pos[X_AXIS] /*+ extruder_offset[X_AXIS][active_extruder]*/)) target[X_AXIS] = max_pos[X_AXIS]; //+ extruder_offset[X_AXIS][active_extruder];
-    if (target[Y_AXIS] > (max_pos[Y_AXIS] /*+ extruder_offset[Y_AXIS][active_extruder]*/)) target[Y_AXIS] = max_pos[Y_AXIS]; //+ extruder_offset[Y_AXIS][active_extruder];
+    if (target[X_AXIS] > (max_pos[X_AXIS] /*+ extruder_offset[X_AXIS][active_extruder]*/)) target[X_AXIS] = max_pos[X_AXIS]; /*+ /*extruder_offset[X_AXIS][active_extruder];*/
+    if (target[Y_AXIS] > (max_pos[Y_AXIS] /*+ extruder_offset[Y_AXIS][active_extruder]*/)) target[Y_AXIS] = max_pos[Y_AXIS]; /*+ /*extruder_offset[Y_AXIS][active_extruder];*/
     if (target[Z_AXIS] > max_pos[Z_AXIS]) target[Z_AXIS] = max_pos[Z_AXIS];
   }
 }
