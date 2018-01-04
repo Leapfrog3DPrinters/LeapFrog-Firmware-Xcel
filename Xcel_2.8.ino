@@ -123,7 +123,7 @@ unsigned char FanSpeed=0;
 int Z_STEPPER_SINGLE = 0;
 bool door_status = false;
 
-// Extruder offset, only in XY plane
+// Extruder offset, only in XY plane // Extruder Offset not required in Xcel as there is only one Extruder. 
 /*#if EXTRUDERS > 1
   float extruder_offset[2][EXTRUDERS] = {
   #if defined(EXTRUDER_OFFSET_X) && defined(EXTRUDER_OFFSET_Y)

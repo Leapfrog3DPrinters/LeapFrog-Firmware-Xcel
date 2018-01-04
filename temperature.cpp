@@ -215,7 +215,7 @@ void PID_autotune(float temp)
       } 
     }
     if(input > (temp + 30)) {
-      SERIAL_PROTOCOLLNPGM("PID Autotune failed! Temperature to high");
+      SERIAL_PROTOCOLLNPGM("PID Autotune failed! Temperature too high");
       SERIAL_PROTOCOLLNPGM("ok");
       return;
     }
@@ -436,7 +436,7 @@ int temp2analog(int celsius, uint8_t e) {
   #endif 
   
   
-  #ifdef PT_100
+  #ifdef PT_100 // Implementation of PT-100 thermistor
     int raw = 0;
     byte i;
     if (celsius <= temptable_pt100[0][1])
@@ -462,29 +462,6 @@ int temp2analog(int celsius, uint8_t e) {
         return raw;
  
   #endif
-  /*if(heater_ttbl_map[e] != 0)
-  {
-    int raw = 0;
-    byte i;
-    short (*tt)[][2] = (short (*)[][2])(heater_ttbl_map[e]);
-
-    for (i=1; i<heater_ttbllen_map[e]; i++)
-    {
-      if (PGM_RD_W((*tt)[i][1]) < celsius)
-      {
-        raw = PGM_RD_W((*tt)[i-1][0]) + 
-          (celsius - PGM_RD_W((*tt)[i-1][1])) * 
-          (PGM_RD_W((*tt)[i][0]) - PGM_RD_W((*tt)[i-1][0])) /
-          (PGM_RD_W((*tt)[i][1]) - PGM_RD_W((*tt)[i-1][1]));  
-        break;
-      }
-    }
-
-    // Overflow: Set to last value in the table
-    if (i == heater_ttbllen_map[e]) raw = PGM_RD_W((*tt)[i-1][0]);
-
-    return (1023 * OVERSAMPLENR) - raw;
-  }*/
   return ((celsius-TEMP_SENSOR_AD595_OFFSET)/TEMP_SENSOR_AD595_GAIN) * (1024.0 / (5.0 * 100.0) ) * OVERSAMPLENR;
 }
 
@@ -539,7 +516,7 @@ float analog2temp(int raw, uint8_t e) {
     }
   #endif
   
-  #ifdef PT_100 
+  #ifdef PT_100 // Implementation of PT-100 thermistor 
     float celsius = 0;
     byte i;
     if (raw < temptable_pt100[0][0])
@@ -579,7 +556,6 @@ float analog2temp(int raw, uint8_t e) {
         }
         return celsius;
   #endif 
-
   return ((raw * ((5.0 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
 }
 

@@ -10,7 +10,8 @@
 //to THIS file by the user have been successfully uploaded into firmware.
 #define STRING_VERSION_CONFIG_H __DATE__ " " __TIME__ //Personal revision number for changes to THIS file.
 #define STRING_CONFIG_H_AUTHOR "Leapfrog 3D Printers" //Who made the changes.
-#define LEAPFROG_FIRMWARE_VERSION "2.8"
+#define LEAPFROG_LMC_VERSION "LMC v2"
+#define LEAPFROG_FIRMWARE_VERSION "2.8.1"
 #define LEAPFROG_MODEL "Xcel"
 
 // This determines the communication speed of the printer
@@ -32,11 +33,12 @@
 //===========================================================================
 //
 // 1 is 100k thermistor - best choice for EPCOS 100k (4.7k pullup)
-#define TEMP_SENSOR_0 1
+#define TEMP_SENSOR_0 1 
 #define TEMP_SENSOR_1 0
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_BED 1
 
+// Implementation of PT-100 sensor as used in BOLT/BOLT PRO. 
 #define PT_100
 #define HEATER_0_USES_DETECTION
 #define HEATER_1_USES_DETECTION
