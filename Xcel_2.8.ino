@@ -97,7 +97,6 @@
 // M503 - print the current settings (from memory not from eeprom)
 // M601 - Set calibration offsets (X, Y, Z)
 // M999 - Restart after being stopped by error
-
 //Stepper Movement Variables
 
 //===========================================================================
@@ -236,7 +235,7 @@ void setup_doorpin()
   #endif
 }
 
-void setup_filament_pins()
+ void setup_filament_pins()
 {
   #if defined(FILAMENT_E0_PIN) && FILAMENT_E0_PIN > -1
   pinMode(FILAMENT_E0_PIN,INPUT);
@@ -246,8 +245,7 @@ void setup_filament_pins()
   pinMode(FILAMENT_E1_PIN,INPUT);
   WRITE(FILAMENT_E1_PIN,HIGH);
   #endif
-}
-
+}                                                                                                                                            
 
 void setup_powerhold()
 {
@@ -1209,6 +1207,7 @@ void process_commands()
       //SERIAL_PROTOCOL(-extruder_offset[X_AXIS][1]);
       //SERIAL_PROTOCOLPGM(" Y: ");
       //SERIAL_PROTOCOLLN(-extruder_offset[Y_AXIS][1]);
+      SERIAL_PROTOCOLLN("");
       break;
     case 120: // M120
       enable_endstops(false);
