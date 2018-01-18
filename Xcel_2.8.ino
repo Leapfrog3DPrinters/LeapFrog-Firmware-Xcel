@@ -6,7 +6,7 @@
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
+ the Free Software Foundation, either version 3 of the License,  or
  (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
@@ -52,7 +52,7 @@
 // G40 - Print amount of steps missed since last reset
 // G90 - Use Absolute Coordinates
 // G91 - Use Relative Coordinates
-// G92 - Set current position to cordinates given
+// G92 - Set current position to coordinates given
 
 // M Codes
 // M104 - Set extruder target temp
@@ -122,13 +122,14 @@ unsigned char FanSpeed=0;
 int Z_STEPPER_SINGLE = 0;
 bool door_status = false;
 
+
 // Extruder offset, only in XY plane // Extruder Offset not required in Xcel as there is only one Extruder. 
 /*#if EXTRUDERS > 1
   float extruder_offset[2][EXTRUDERS] = {
   #if defined(EXTRUDER_OFFSET_X) && defined(EXTRUDER_OFFSET_Y)
     EXTRUDER_OFFSET_X, EXTRUDER_OFFSET_Y
   #endif
-  };
+
 #endif*/
 
 //===========================================================================
@@ -237,13 +238,13 @@ void setup_doorpin()
 
  void setup_filament_pins()
 {
-  #if defined(FILAMENT_E0_PIN) && FILAMENT_E0_PIN > -1
-  pinMode(FILAMENT_E0_PIN,INPUT);
-  WRITE(FILAMENT_E0_PIN,HIGH);
+  #if defined(FILAMENT_E0) && FILAMENT_E0 > -1
+  pinMode(FILAMENT_E0,INPUT);
+  WRITE(FILAMENT_E0,HIGH);
   #endif
-  #if defined(FILAMENT_E1_PIN) && FILAMENT_E1_PIN > -1
-  pinMode(FILAMENT_E1_PIN,INPUT);
-  WRITE(FILAMENT_E1_PIN,HIGH);
+  #if defined(FILAMENT_E1) && FILAMENT_E1 > -1
+  pinMode(FILAMENT_E1,INPUT);
+  WRITE(FILAMENT_E1,HIGH);
   #endif
 }                                                                                                                                            
 
@@ -525,7 +526,7 @@ static void homeaxis(int axis)
     st_synchronize();
 
     destination[axis] = 2*home_retract_mm(axis) * home_dir(axis);
-    feedrate = homing_feedrate[axis]/2 ;
+    feedrate = homing_feedrate[axis]/2 ; 
     plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
     st_synchronize();
 
@@ -609,27 +610,43 @@ void process_commands()
       bool  homeX = code_seen(axis_codes[X_AXIS]),
             homeY = code_seen(axis_codes[Y_AXIS]),
             homeZ = code_seen(axis_codes[Z_AXIS]);
-
+      bool  HomeZNotDone = false;
       home_all_axis = !(homeX || homeY || homeZ) || (homeX && homeY && homeZ);
-
+       
+     
+       
       // Raise Z before homing any other axes
       // Edb
-      //if (home_all_axis || homeZ) {
-      //  destination[Z_AXIS] = -2 * home_dir(Z_AXIS);    // Set destination away from bed  
-      //  feedrate = max_feedrate[Z_AXIS] * 60;
-      //  line_to_destination();
-      //  st_synchronize();
-      //}
-
-      // Home Y
-      if (home_all_axis || homeY) HOMEAXIS(Y); 
+      /* if (home_all_axis || homeZ) {
+        destination[Z_AXIS] = -2 * home_dir(Z_AXIS);    // Set destination away from bed  
+        feedrate = max_feedrate[Z_AXIS] * 60;
+        line_to_destination();
+        st_synchronize();
+      }*/
       
-      // Home X
+      // The Solenoid of the Z-probe should always be retracted.    
+      digitalWrite(SOL2_PIN, HIGH);   // Direction of Solenoid2 is retracting of the Z-probe back. (remove this and manipulate)
+      delay(300); 
+      digitalWrite(SOL2_PIN, LOW); 
+      
+      // The Z axis always lowers 30mm before the travel of the Head along the X and Y axis to avoid collsion of the head with Bed exclusively in the Xcel. 
+      if (HomeZNotDone == false){
+        feedrate = 120;
+        destination[Z_AXIS] = current_position[Z_AXIS] + 30;
+        line_to_destination();
+        st_synchronize();
+        HomeZNotDone =true; 
+        destination[Z_AXIS] = current_position[Z_AXIS];      
+      }
+ 
+      // Home Y First
+       if (homeY || home_all_axis) HOMEAXIS(Y); 
+       
+      // Home X 
       if (home_all_axis || homeX) HOMEAXIS(X);
-         
+            
           
       // Home Z 
-      // Edb
       if (home_all_axis || homeZ) 
       {
         destination[Z_AXIS] = current_position[Z_AXIS] + 2;
@@ -640,13 +657,15 @@ void process_commands()
         
         // Implementation of logic for bi-directional solenoid for auto bed-levelling.
         digitalWrite(SOL1_PIN, HIGH);   // Direction of Solenoid1 is extending of the Z-probe to touch the bed. 
-        delay(1000);
+        delay(500);
         digitalWrite(SOL1_PIN, LOW);
         HOMEAXIS(Z);
-        delay(800);
+        delay(500);
         digitalWrite(SOL2_PIN, HIGH);   // Direction of Solenoid2 is retracting of the Z-probe back.
-        delay(1000); 
+        delay(800); 
         digitalWrite(SOL2_PIN, LOW);
+        
+        HomeZNotDone = false;
         
       }
 
@@ -669,20 +688,20 @@ void process_commands()
               
     // Implementation of logic for bi-directional solenoid for auto bed-levelling. 
     digitalWrite(SOL1_PIN, HIGH);     // Direction of Solenoid1 is extending of the Z-probe to touch the bed. 
-    delay(1000);
+    delay(500);
     digitalWrite(SOL1_PIN, LOW);
     delay(800);
     digitalWrite(SOL2_PIN, HIGH);     // Direction of Solenoid2 is retracting of the Z-probe back.
-    delay(1000);
+    delay(500);
     digitalWrite(SOL2_PIN, LOW);
-    delay(1000);
+    delay(400);
     break;
         
     case 30: // G30 - solenoid uitklappen
              
     // Implementation of logic for bi-directional solenoid for auto bed-levelling. 
     digitalWrite(SOL1_PIN, HIGH);  
-    delay(1000);
+    delay(500);
     digitalWrite(SOL1_PIN, LOW);
     break;    
      
@@ -690,7 +709,7 @@ void process_commands()
         
     // Implementation of logic for bi-directional solenoid for auto bed-levelling.
     digitalWrite(SOL2_PIN, HIGH);
-    delay(1000);
+    delay(500);
     digitalWrite(SOL2_PIN, LOW);
     break;
       
@@ -757,12 +776,12 @@ void process_commands()
               
         // Implementation of logic for bi-directional solenoid for auto bed-levelling.
         digitalWrite(SOL1_PIN, HIGH);
-        delay(1000);
+        delay(500);
         digitalWrite(SOL1_PIN, LOW);
         HOMEAXIS(Z);
-        delay(800);
+        delay(400);
         digitalWrite(SOL2_PIN, HIGH);
-        delay(1000); 
+        delay(500); 
         digitalWrite(SOL2_PIN, LOW);
 
       }
@@ -772,6 +791,9 @@ void process_commands()
         float v = code_value();
         if (v) current_position[Z_AXIS] = v + add_homeing[2];
       }
+
+      
+
 
       sync_plan_position();
 
@@ -1601,9 +1623,9 @@ float zprobe(const float& x, const float& y, const float& z) {
 
     
   digitalWrite(SOL1_PIN, HIGH);   // Extending of the Z-probe
-  delay(1000);
+  delay(500);
   digitalWrite(SOL1_PIN, LOW);
-  delay(800); 
+  delay(400); 
   
  
 
@@ -1641,7 +1663,7 @@ endstops_hit_on_purpose();
 
 
     digitalWrite(SOL2_PIN, HIGH);
-    delay(800); 
+    delay(500); 
     digitalWrite(SOL2_PIN, LOW);
 
 enable_endstops(false);

@@ -15,7 +15,7 @@
 #define LEAPFROG_MODEL "Xcel"
 
 // This determines the communication speed of the printer
-#define BAUDRATE 115200
+#define BAUDRATE 250000
 
 // In steps that needs to be taken from the second extruder to the first extruder
 // See M50 Gcode commando for more info 
@@ -151,7 +151,7 @@ const bool Z_ENDSTOPS_INVERTING = false; // set to true to invert the logic of t
 // Sets direction of endstops when homing; 1=MAX, -1=MIN
 #define X_HOME_DIR -1
 #define Y_HOME_DIR 1
-#define Z_HOME_DIR -1
+#define Z_HOME_DIR -1  
 
 #define min_software_endstops true  //If true, axis won't move to coordinates less than HOME_POS.
 #define max_software_endstops true  //If true, axis won't move to coordinates greater than the defined lengths below.
@@ -167,9 +167,9 @@ const bool Z_ENDSTOPS_INVERTING = false; // set to true to invert the logic of t
 #define Z_MIN_POS 0
 #define X_MAX_POS 550
 #define Y_MAX_POS 500
-#define Z_MAX_POS 2240
+#define Z_MAX_POS 2200
 
-#define MAX_ZOFFSET 2 // Maximum amount the Z-axis can go in - direction in mm. To allow moving in - but not too far. 
+#define MAX_ZOFFSET 4 // Maximum amount the Z-axis can go in - direction in mm. To allow moving in - but not too far. 
 
 #define X_MAX_LENGTH (X_MAX_POS - X_MIN_POS)
 #define Y_MAX_LENGTH (Y_MAX_POS - Y_MIN_POS)
@@ -177,7 +177,7 @@ const bool Z_ENDSTOPS_INVERTING = false; // set to true to invert the logic of t
 
 //// MOVEMENT SETTINGS
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
-#define HOMING_FEEDRATE {50*60, 50*60, 4*60, 0, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {50*60, 50*60, 7*60, 0, 0}  // set the homing speeds (mm/min) // 4*60 was the old homing rate for the Z axis. 
 
 // default settings
 
