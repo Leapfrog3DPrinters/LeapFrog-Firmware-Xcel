@@ -14,7 +14,7 @@
 #define LEAPFROG_MODEL "Xcel"
 
 // This determines the communication speed of the printer
-#define BAUDRATE 115200
+#define BAUDRATE 250000
 
 // In steps that needs to be taken from the second extruder to the first extruder
 // See M50 Gcode commando for more info 
