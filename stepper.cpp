@@ -236,7 +236,7 @@ void checkHitEndstops()
           s_error++;
           filament_errors++;
           small_steps = 0;
-          if (filament_errors > 4 ){
+          if (filament_errors > 6 ){
             filament_errors = 0;
             filament_error = true;
             total_s_errors++;
@@ -253,7 +253,7 @@ void checkHitEndstops()
        //SERIAL_ECHOLN("Missed step in long move");
       filament_errors++;
       l_error++;
-      if (filament_errors > 4 ){
+      if (filament_errors > 6 ){
         //SERIAL_ECHO("//action:filament"); 
         filament_errors = 0;
         filament_error = true;

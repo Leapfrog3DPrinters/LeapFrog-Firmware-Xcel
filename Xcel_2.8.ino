@@ -157,17 +157,19 @@ static char *strchr_pointer; // just a pointer to find chars in the cmd string l
 
 const int sensitive_pins[] = SENSITIVE_PINS; // Sensitive pin list for M42
 
-//Inactivity shutdown variables
+//========================================================================================================================
+//=================================Inactivity shutdown variables==========================================================
+//========================================================================================================================
 static unsigned long previous_millis_cmd = 0;
 static unsigned long max_inactive_time = 0;
 static unsigned long stepper_inactive_time = DEFAULT_STEPPER_DEACTIVE_TIME*1000l;
+static bool break_heating_wait = false;
 
 static unsigned long starttime=0;
 static unsigned long stoptime=0;
 
 static uint8_t tmp_extruder;
 static uint8_t target_extruder;
-
 
 bool Stopped=false;
 
@@ -331,6 +333,11 @@ void setup()
   SERIAL_PROTOCOLLNPGM("start");    
 }
 
+void readCommand()
+{
+  if (buflen < (BUFSIZE - 1))
+  get_command();
+}
 
 void loop()
 {
@@ -440,8 +447,21 @@ void get_command()
             break;
           }
         }
-        bufindw = (bufindw + 1)%BUFSIZE;
-        buflen += 1;
+                
+        
+        if (strstr(cmdbuffer[bufindw], "M108") != NULL) 
+	{
+	    // Don't add the command to the buffer and pretend this never happened.
+	    break_heating_wait= true;
+	    // It never happened, so we don't send OK
+	    // SERIAL_PROTOCOLLNPGM(MSG_OK);
+        }
+        else
+        {
+            bufindw = (bufindw + 1)%BUFSIZE;
+            buflen += 1;
+        }
+       
     }
       serial_count = 0; //clear buffer
     }
@@ -610,11 +630,11 @@ void process_commands()
       bool  homeX = code_seen(axis_codes[X_AXIS]),
             homeY = code_seen(axis_codes[Y_AXIS]),
             homeZ = code_seen(axis_codes[Z_AXIS]);
+      
       bool  HomeZNotDone = false;
       home_all_axis = !(homeX || homeY || homeZ) || (homeX && homeY && homeZ);
        
      
-       
       // Raise Z before homing any other axes
       // Edb
       /* if (home_all_axis || homeZ) {
@@ -624,27 +644,29 @@ void process_commands()
         st_synchronize();
       }*/
       
-      // The Solenoid of the Z-probe should always be retracted.    
+     // The Solenoid of the Z-probe should always be retracted.    
       digitalWrite(SOL2_PIN, HIGH);   // Direction of Solenoid2 is retracting of the Z-probe back. (remove this and manipulate)
       delay(300); 
       digitalWrite(SOL2_PIN, LOW); 
       
-      // The Z axis always lowers 30mm before the travel of the Head along the X and Y axis to avoid collsion of the head with Bed exclusively in the Xcel. 
-      if (HomeZNotDone == false){
-        feedrate = 120;
-        destination[Z_AXIS] = current_position[Z_AXIS] + 30;
-        line_to_destination();
-        st_synchronize();
-        HomeZNotDone =true; 
-        destination[Z_AXIS] = current_position[Z_AXIS];      
-      }
+     // The Z axis always lowers 30mm before the travel of the Head along the X and Y axis to avoid collsion of the head with Bed exclusively in the Xcel. 
+      
+      if (home_all_axis) {
+        if (HomeZNotDone == false){
+          feedrate = 120;
+          destination[Z_AXIS] = current_position[Z_AXIS] + 30;
+          line_to_destination();
+          st_synchronize();
+          HomeZNotDone = true; 
+          destination[Z_AXIS] = current_position[Z_AXIS];      
+        }
+      }  
  
       // Home Y First
        if (homeY || home_all_axis) HOMEAXIS(Y); 
-       
+             
       // Home X 
-      if (home_all_axis || homeX) HOMEAXIS(X);
-            
+      if (home_all_axis || homeX) HOMEAXIS(X);       
           
       // Home Z 
       if (home_all_axis || homeZ) 
@@ -671,7 +693,6 @@ void process_commands()
 
       sync_plan_position();
 
-
       #ifdef ENDSTOPS_ONLY_FOR_HOMING
         enable_endstops(false);
       #endif
@@ -683,6 +704,7 @@ void process_commands()
       endstops_hit_on_purpose(); // clear endstop hit flags
       break;
     }
+    
     #ifdef ENABLE_ZPROBE
     case 29: // G29 - Test z_probe solenoid
               
@@ -715,9 +737,7 @@ void process_commands()
       
     case 32: // G32 - Z Probe at 3 points place the bed straight
     {
-
       relative_mode_backup = relative_mode; // Relative mode might be changed by probing algorithm. So store it, to be restored at the end
-      
       saved_feedrate = feedrate;
       saved_feedmultiply = feedmultiply;
       feedmultiply = 100;
@@ -1020,66 +1040,9 @@ void process_commands()
       }
       #endif
       setWatch();
-      codenum = millis();
+      
+      bool heated = waitForTargetExtruderTemp();
 
-      /* See if we are heating up or cooling down */
-      bool target_direction = isHeatingHotend(target_extruder); // true if heating, false if cooling
-
-      #ifdef TEMP_RESIDENCY_TIME
-      long residencyStart;
-      residencyStart = -1;
-        /* continue to loop until we have reached the target temp
-        _and_ until TEMP_RESIDENCY_TIME hasn't passed since we reached it */
-      while((residencyStart == -1) ||
-          (residencyStart >= 0 && (((unsigned int) (millis() - residencyStart)) < (TEMP_RESIDENCY_TIME * 1000UL))) ) 
-      {
-      #else
-      while ( target_direction ? (isHeatingHotend(target_extruder)) : (isCoolingHotend(target_extruder)&&(CooldownNoWait==false)) ) 
-      {
-      #endif //TEMP_RESIDENCY_TIME
-        if((millis() - codenum) > 1000UL )
-        { //Print Temp Reading and remaining time every 1 second while heating up/cooling down
-          SERIAL_PROTOCOLPGM("T:");
-          SERIAL_PROTOCOL_F(degHotend(target_extruder),1);
-          SERIAL_PROTOCOLPGM(" E:");
-          SERIAL_PROTOCOL((int)target_extruder);
-          #ifdef TEMP_RESIDENCY_TIME
-          SERIAL_PROTOCOLPGM(" W:");
-          if(residencyStart > -1)
-          {
-           codenum = ((TEMP_RESIDENCY_TIME * 1000UL) - (millis() - residencyStart)) / 1000UL;
-           SERIAL_PROTOCOL( codenum );
-          }
-          else
-          {
-           SERIAL_PROTOCOL( "?" );
-          }  
-          #endif
-          showExtruderTemperatures();
-          #if TEMP_BED_PIN > -1
-          SERIAL_PROTOCOLPGM(" B:");
-          SERIAL_PROTOCOL_F(degBed(),1);
-          SERIAL_PROTOCOLPGM(" /");
-          SERIAL_PROTOCOL_F(degTargetBed(),1);
-          #endif //TEMP_BED_PIN
-          SERIAL_PROTOCOLLN("");
-          codenum = millis();
-        }
-        manage_heater();
-        manage_inactivity();
-        #ifdef TEMP_RESIDENCY_TIME
-          /* start/restart the TEMP_RESIDENCY_TIME timer whenever we reach target temp for the first time
-          or when current temp falls outside the hysteresis after target temp was reached */
-        if ((residencyStart == -1 &&  target_direction && (degHotend(target_extruder) >= (degTargetHotend(target_extruder)-TEMP_WINDOW))) ||
-            (residencyStart == -1 && !target_direction && (degHotend(target_extruder) <= (degTargetHotend(target_extruder)+TEMP_WINDOW))) ||
-            (residencyStart > -1 && labs(degHotend(target_extruder) - degTargetHotend(target_extruder)) > TEMP_HYSTERESIS) )
-        {
-          residencyStart = millis();
-        }
-        #endif //TEMP_RESIDENCY_TIME
-      }
-      starttime=millis();
-      previous_millis_cmd = millis();
       break;
     }
     case 190: // M190 - Wait for bed heater to reach target.
@@ -1087,6 +1050,8 @@ void process_commands()
       #if TEMP_BED_PIN > -1
       if (code_seen('S')) setTargetBed(code_value());
       codenum = millis();
+      break_heating_wait = false;
+
       while(isHeatingBed())
       {
         if(( millis() - codenum) > 1000 ) //Print Temp Reading every 1 second while heating up.
@@ -1104,6 +1069,13 @@ void process_commands()
         }
         manage_heater();
         manage_inactivity();
+        // Continue filling the command buffer, whilst checking for M108s
+	readCommand();
+	if (break_heating_wait)
+        {
+	    break_heating_wait = false;
+	    break;
+        }
       }
       previous_millis_cmd = millis();
       #endif
@@ -1955,6 +1927,85 @@ bool setTargetedHotend(int code){
   }
   return false;
 }
+
+
+bool waitForTargetExtruderTemp()
+{
+      /* See if we are heating up or cooling down */
+      unsigned long codenum = millis();
+
+      bool target_direction = isHeatingHotend(target_extruder); // true if heating, false if cooling
+      break_heating_wait = false;
+      
+      #ifdef TEMP_RESIDENCY_TIME
+      long residencyStart;
+      residencyStart = -1;
+        /* continue to loop until we have reached the target temp
+        _and_ until TEMP_RESIDENCY_TIME hasn't passed since we reached it */
+      while((residencyStart == -1) ||
+          (residencyStart >= 0 && (((unsigned int) (millis() - residencyStart)) < (TEMP_RESIDENCY_TIME * 1000UL))) ) 
+      {
+      #else
+      while ( target_direction ? (isHeatingHotend(target_extruder)) : (isCoolingHotend(target_extruder)&&(CooldownNoWait==false)) ) 
+      {
+      #endif //TEMP_RESIDENCY_TIME
+        if((millis() - codenum) > 1000UL )
+        { //Print Temp Reading and remaining time every 1 second while heating up/cooling down
+          SERIAL_PROTOCOLPGM("T:");
+          SERIAL_PROTOCOL_F(degHotend(target_extruder),1);
+          SERIAL_PROTOCOLPGM(" E:");
+          SERIAL_PROTOCOL((int)target_extruder);
+          #ifdef TEMP_RESIDENCY_TIME
+          SERIAL_PROTOCOLPGM(" W:");
+          if(residencyStart > -1)
+          {
+           codenum = ((TEMP_RESIDENCY_TIME * 1000UL) - (millis() - residencyStart)) / 1000UL;
+           SERIAL_PROTOCOL( codenum );
+          }
+          else
+          {
+           SERIAL_PROTOCOL( "?" );
+          }  
+          #endif
+          showExtruderTemperatures();
+          #if TEMP_BED_PIN > -1
+          SERIAL_PROTOCOLPGM(" B:");
+          SERIAL_PROTOCOL_F(degBed(),1);
+          SERIAL_PROTOCOLPGM(" /");
+          SERIAL_PROTOCOL_F(degTargetBed(),1);
+          #endif //TEMP_BED_PIN
+          SERIAL_PROTOCOLLN("");
+          codenum = millis();
+        }
+        manage_heater();
+        manage_inactivity();
+        #ifdef TEMP_RESIDENCY_TIME
+          /* start/restart the TEMP_RESIDENCY_TIME timer whenever we reach target temp for the first time
+          or when current temp falls outside the hysteresis after target temp was reached */
+        if ((residencyStart == -1 &&  target_direction && (degHotend(target_extruder) >= (degTargetHotend(target_extruder)-TEMP_WINDOW))) ||
+            (residencyStart == -1 && !target_direction && (degHotend(target_extruder) <= (degTargetHotend(target_extruder)+TEMP_WINDOW))) ||
+            (residencyStart > -1 && labs(degHotend(target_extruder) - degTargetHotend(target_extruder)) > TEMP_HYSTERESIS) )
+        {
+          residencyStart = millis();
+        }
+        #endif //TEMP_RESIDENCY_TIME
+        
+        readCommand();
+        if (break_heating_wait)
+          {
+	    break_heating_wait = false;
+            // By returning false, we prevent checking the other extruder in sync mode
+	    return false;
+	  }
+        
+      }
+      
+      	starttime = millis();
+	previous_millis_cmd = millis();
+	return true;
+}
+
+
 
 void showExtruderTemperatures()
 {
