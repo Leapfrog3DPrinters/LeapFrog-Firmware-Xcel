@@ -10,7 +10,8 @@
 //to THIS file by the user have been successfully uploaded into firmware.
 #define STRING_VERSION_CONFIG_H __DATE__ " " __TIME__ //Personal revision number for changes to THIS file.
 #define STRING_CONFIG_H_AUTHOR "Leapfrog 3D Printers" //Who made the changes.
-#define LEAPFROG_FIRMWARE_VERSION "2.8"
+#define LEAPFROG_LMC_VERSION "LMC v2"
+#define LEAPFROG_FIRMWARE_VERSION "2.8.2"
 #define LEAPFROG_MODEL "Xcel"
 
 // This determines the communication speed of the printer
@@ -32,10 +33,15 @@
 //===========================================================================
 //
 // 1 is 100k thermistor - best choice for EPCOS 100k (4.7k pullup)
-#define TEMP_SENSOR_0 1
-#define TEMP_SENSOR_1 1
+#define TEMP_SENSOR_0 1 
+#define TEMP_SENSOR_1 0
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_BED 1
+
+// Implementation of PT-100 sensor as used in BOLT/BOLT PRO. 
+#define PT_100
+#define HEATER_0_USES_DETECTION
+#define HEATER_1_USES_DETECTION
 
 // Actual temperature must be close to target for this long before M109 returns success
 #define TEMP_RESIDENCY_TIME 10	// (seconds)
@@ -117,8 +123,8 @@
 
 #define ENDSTOPPULLUP_ZMIN
 // The pullups are needed if you directly connect a mechanical endswitch between the signal and ground pins.
-const bool X_ENDSTOPS_INVERTING = false; // set to true to invert the logic of the endstops.
-const bool Y_ENDSTOPS_INVERTING = false; // set to true to invert the logic of the endstops.
+const bool X_ENDSTOPS_INVERTING = true; // set to true to invert the logic of the endstops.
+const bool Y_ENDSTOPS_INVERTING = true; // set to true to invert the logic of the endstops.
 const bool Z_ENDSTOPS_INVERTING = false; // set to true to invert the logic of the endstops.
 //#define DISABLE_MAX_ENDSTOPS
 
@@ -145,7 +151,7 @@ const bool Z_ENDSTOPS_INVERTING = false; // set to true to invert the logic of t
 // Sets direction of endstops when homing; 1=MAX, -1=MIN
 #define X_HOME_DIR -1
 #define Y_HOME_DIR 1
-#define Z_HOME_DIR -1
+#define Z_HOME_DIR -1  
 
 #define min_software_endstops true  //If true, axis won't move to coordinates less than HOME_POS.
 #define max_software_endstops true  //If true, axis won't move to coordinates greater than the defined lengths below.
@@ -161,9 +167,9 @@ const bool Z_ENDSTOPS_INVERTING = false; // set to true to invert the logic of t
 #define Z_MIN_POS 0
 #define X_MAX_POS 550
 #define Y_MAX_POS 500
-#define Z_MAX_POS 2240
+#define Z_MAX_POS 2200
 
-#define MAX_ZOFFSET 2 // Maximum amount the Z-axis can go in - direction in mm. To allow moving in - but not too far. 
+#define MAX_ZOFFSET 4 // Maximum amount the Z-axis can go in - direction in mm. To allow moving in - but not too far. 
 
 #define X_MAX_LENGTH (X_MAX_POS - X_MIN_POS)
 #define Y_MAX_LENGTH (Y_MAX_POS - Y_MIN_POS)
@@ -171,18 +177,18 @@ const bool Z_ENDSTOPS_INVERTING = false; // set to true to invert the logic of t
 
 //// MOVEMENT SETTINGS
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
-#define HOMING_FEEDRATE {50*60, 50*60, 4*60, 0, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {50*60, 50*60, 7*60, 0, 0}  // set the homing speeds (mm/min) // 4*60 was the old homing rate for the Z axis. 
 
 // default settings
 
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {55.55555555, 55.5555555555, 9600.0/5, 198.60}  // default steps, X steps terug naar 1/2 (driver op 2000 ipv 4000)
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {27.7777777777, 27.7777777777, 9600.0/5, 198.60}  // default steps, X steps terug naar 1/2 (driver op 2000 ipv 4000)
 #define DEFAULT_MAX_FEEDRATE          {200, 200, 10, 45}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {500,500,300,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
 #define DEFAULT_ACCELERATION          500    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  7000   // X, Y, Z and E max acceleration in mm/s^2 for r retracts
 
-// Jerk
+// Jerk 
 #define DEFAULT_XYJERK                5.0    // (mm/sec)   std: 15.0
 #define DEFAULT_ZJERK                 1     // (mm/sec)
 #define DEFAULT_EJERK                 60.0    // (mm/sec)
@@ -245,5 +251,6 @@ static Vector3d zbasis(0,0,1);
 
 #include "Configuration_adv.h"
 #include "thermistortables.h"
+#include "pt100tables.h"
 
 #endif //__CONFIGURATION_H

@@ -215,7 +215,7 @@ void PID_autotune(float temp)
       } 
     }
     if(input > (temp + 30)) {
-      SERIAL_PROTOCOLLNPGM("PID Autotune failed! Temperature to high");
+      SERIAL_PROTOCOLLNPGM("PID Autotune failed! Temperature too high");
       SERIAL_PROTOCOLLNPGM("ok");
       return;
     }
@@ -433,30 +433,35 @@ int temp2analog(int celsius, uint8_t e) {
     {
       return celsius * 4;
     }
-  #endif
-  if(heater_ttbl_map[e] != 0)
-  {
+  #endif 
+  
+  
+  #ifdef PT_100 // Implementation of PT-100 thermistor
     int raw = 0;
     byte i;
-    short (*tt)[][2] = (short (*)[][2])(heater_ttbl_map[e]);
+    if (celsius <= temptable_pt100[0][1])
+        {
+          raw = temptable_pt100[0][0];
+        }
+        else
+        {
+          for (i = 1; i < temptable_pt100_len; i++) {
+              if (PGM_RD_W(temptable_pt100[i][1]) > celsius) {   // Table entries increase monotonic
+                  // Interpolate between i-1 and i'th entry:
+                  raw = PGM_RD_W(temptable_pt100[i - 1][0]) +
+                      (celsius - PGM_RD_W(temptable_pt100[i - 1][1])) *
+                      (PGM_RD_W(temptable_pt100[i][0]) - PGM_RD_W(temptable_pt100[i - 1][0])) /
+                      (PGM_RD_W(temptable_pt100[i][1]) - PGM_RD_W(temptable_pt100[i - 1][1]));
+                  break;
+              }
+          }
 
-    for (i=1; i<heater_ttbllen_map[e]; i++)
-    {
-      if (PGM_RD_W((*tt)[i][1]) < celsius)
-      {
-        raw = PGM_RD_W((*tt)[i-1][0]) + 
-          (celsius - PGM_RD_W((*tt)[i-1][1])) * 
-          (PGM_RD_W((*tt)[i][0]) - PGM_RD_W((*tt)[i-1][0])) /
-          (PGM_RD_W((*tt)[i][1]) - PGM_RD_W((*tt)[i-1][1]));  
-        break;
-      }
-    }
-
-    // Overflow: Set to last value in the table
-    if (i == heater_ttbllen_map[e]) raw = PGM_RD_W((*tt)[i-1][0]);
-
-    return (1023 * OVERSAMPLENR) - raw;
-  }
+          // If celsius is bigger than the biggest table entry, return biggest raw entry:
+          if (i == temptable_pt100_len) { raw = PGM_RD_W(temptable_pt100[i - 1][0]); }
+        }
+        return raw;
+ 
+  #endif
   return ((celsius-TEMP_SENSOR_AD595_OFFSET)/TEMP_SENSOR_AD595_GAIN) * (1024.0 / (5.0 * 100.0) ) * OVERSAMPLENR;
 }
 
@@ -510,31 +515,47 @@ float analog2temp(int raw, uint8_t e) {
       return 0.25 * raw;
     }
   #endif
-
-  if(heater_ttbl_map[e] != 0)
-  {
+  
+  #ifdef PT_100 // Implementation of PT-100 thermistor 
     float celsius = 0;
-    byte i;  
-    short (*tt)[][2] = (short (*)[][2])(heater_ttbl_map[e]);
+    byte i;
+    if (raw < temptable_pt100[0][0])
+        {
+          celsius = (float)temptable_pt100[0][1];
+        }
+        else
+        {
+          for (i = 1; i < temptable_pt100_len; i++) {
+              if (PGM_RD_W(temptable_pt100[i][0]) > raw) {
+                  // Linear interpolate between i-1 and i:
+                  // SERIAL_ECHO("analog2temp (t");
+                  // SERIAL_ECHO(e);
+                  // SERIAL_ECHO(" raw:");
+                  // SERIAL_ECHO(raw);
+                  // SERIAL_ECHO(") a:");
+                  // SERIAL_ECHO(PGM_RD_W(temptable_pt100[i - 1][1]));
+                  // SERIAL_ECHO(" b:");
+                  // SERIAL_ECHO(raw - temptable_pt100[i - 1][0]);
+                  // SERIAL_ECHO(" c1:");
+                  // SERIAL_ECHO((float)(PGM_RD_W(temptable_pt100[i][1] - temptable_pt100[i - 1][1])));
+                  // SERIAL_ECHO(" c2:");
+                  // SERIAL_ECHO((float)(PGM_RD_W(temptable_pt100[i][0] - temptable_pt100[i - 1][0])));
+                  // SERIAL_ECHO(" celsius: ");
 
-    raw = (1023 * OVERSAMPLENR) - raw;
-    for (i=1; i<heater_ttbllen_map[e]; i++)
-    {
-      if (PGM_RD_W((*tt)[i][0]) > raw)
-      {
-        celsius = PGM_RD_W((*tt)[i-1][1]) + 
-          (raw - PGM_RD_W((*tt)[i-1][0])) * 
-          (float)(PGM_RD_W((*tt)[i][1]) - PGM_RD_W((*tt)[i-1][1])) /
-          (float)(PGM_RD_W((*tt)[i][0]) - PGM_RD_W((*tt)[i-1][0]));
-        break;
-      }
-    }
+                  celsius = PGM_RD_W(temptable_pt100[i - 1][1]) +
+                      (raw - PGM_RD_W(temptable_pt100[i - 1][0])) *
+                      (float)(PGM_RD_W(temptable_pt100[i][1]) - PGM_RD_W(temptable_pt100[i - 1][1])) /
+                      (float)(PGM_RD_W(temptable_pt100[i][0]) - PGM_RD_W(temptable_pt100[i - 1][0]));
 
-    // Overflow: Set to last value in the table
-    if (i == heater_ttbllen_map[e]) celsius = PGM_RD_W((*tt)[i-1][1]);
+                  break;
+              }
+          }
 
-    return celsius;
-  }
+          // If raw is still bigger than the last entry in the table, return the last value:
+          if (i == temptable_pt100_len) { celsius = PGM_RD_W(temptable_pt100[i - 1][1]); }
+        }
+        return celsius;
+  #endif 
   return ((raw * ((5.0 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
 }
 
@@ -969,15 +990,15 @@ ISR(TIMER0_COMPB_vect)
     
   if(temp_count >= 16) // 8 ms * 16 = 128ms.
   {
-    #if defined(HEATER_0_USES_AD595) || defined(HEATER_0_USES_MAX6675)
-      current_raw[0] = raw_temp_0_value;
+    #if defined(HEATER_0_USES_AD595) || defined(HEATER_0_USES_MAX6675) || defined(HEATER_0_USES_DETECTION)
+      current_raw[0] = raw_temp_0_value;  // Use uninverted ADC value for PT100
     #else
       current_raw[0] = 16383 - raw_temp_0_value;
     #endif
 
 #if EXTRUDERS > 1    
-    #ifdef HEATER_1_USES_AD595
-      current_raw[1] = raw_temp_1_value;
+    #if defined(HEATER_1_USES_AD595) || defined(HEATER_1_USES_DETECTION)
+      current_raw[1] = raw_temp_1_value;  // Use uninverted ADC value for PT100
     #else
       current_raw[1] = 16383 - raw_temp_1_value;
     #endif

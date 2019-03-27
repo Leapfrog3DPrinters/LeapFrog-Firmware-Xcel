@@ -56,7 +56,7 @@ inline void EEPROM_StoreSettings()
   EEPROM_writeAnything(i,max_z_jerk);
   EEPROM_writeAnything(i,max_e_jerk);
   EEPROM_writeAnything(i,add_homeing);
-  EEPROM_writeAnything(i,extruder_offset);
+  //EEPROM_writeAnything(i,extruder_offset);
 
   #ifdef PIDTEMP
     EEPROM_writeAnything(i,Kp);
@@ -141,8 +141,8 @@ inline void EEPROM_printSettings(bool def = false)
         SERIAL_ECHOLNPGM("Extruder 2 offsets(will not reset with firmware reset):");
         SERIAL_ECHO_START;
         // Inverted, see comments at M50 for explanation
-        SERIAL_ECHOPAIR(" X" ,-extruder_offset[0][1]);
-        SERIAL_ECHOPAIR(" Y" ,-extruder_offset[1][1]);
+        //SERIAL_ECHOPAIR(" X" ,-extruder_offset[0][1]);
+        //SERIAL_ECHOPAIR(" Y" ,-extruder_offset[1][1]);
         SERIAL_ECHOLN("");
       }
  
@@ -172,7 +172,7 @@ inline void EEPROM_RetrieveSettings(bool def=false)
       EEPROM_readAnything(i,max_z_jerk);
       EEPROM_readAnything(i,max_e_jerk);
       EEPROM_readAnything(i,add_homeing);
-      EEPROM_readAnything(i,extruder_offset);
+      //EEPROM_readAnything(i,extruder_offset);
       #ifndef PIDTEMP
         float Kp,Ki,Kd;
       #endif

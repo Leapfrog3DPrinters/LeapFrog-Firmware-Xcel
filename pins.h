@@ -52,8 +52,8 @@
 #define FAN_PIN            10
 #define PS_ON_PIN          -1
 #define KILL_PIN           -1
-#define SOL1_PIN           16
-#define SOL2_PIN           7
+#define SOL1_PIN           26
+#define SOL2_PIN           25
 
 #define HEATER_0_PIN       9
 #define HEATER_1_PIN       8 // 12 

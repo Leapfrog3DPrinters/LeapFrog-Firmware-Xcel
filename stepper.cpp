@@ -41,11 +41,10 @@ int total_s_errors = 0;
 int total_l_errors = 0;
 bool filament_error = false; 
 
-
 //===========================================================================
 //=============================private variables ============================
 //===========================================================================
-//static makes it inpossible to be called from outside of this file by extern.!
+//static makes it impossible to be called from outside of this file by extern.!
 
 // Variables used by The Stepper Driver Interrupt
 static unsigned char out_bits;        // The next stepping-bits to be output
@@ -211,39 +210,33 @@ void checkHitEndstops()
     if (filament_status != init_status){
       pulse++;
       filament_status = init_status;
-      //SERIAL_ECHO("Pulses: ");
+      //SERIAL_ECHO("Pulses count in the pulses function: ");
       //SERIAL_ECHOLN(pulse);
     }
   }
 
-
-  // At the end of an block(move) check if the expected puslse align with the received pulses. 
+  // At the end of an block(move) check if the expected pulse aligns with the received pulses. 
   void checkFilament(long steps_e)
   {
-    //  int() to round of to whole lowest number
     int expected_pulses = (steps_e/steps_per_pulse); 
-    //SERIAL_ECHO("Number of expected pulses: ");
-    //SERIAL_ECHOLN(expected_pulses);
-    //SERIAL_ECHO("Pulses: ");
-    //SERIAL_ECHOLN(pulse)  
-    // If statements for small steps. 
-    if (expected_pulses < 1 ){
-      if (pulse > 0) {
-        small_steps = 0;
+           
+    // Small E-steps as defined to be less than 5. 
+    if (expected_pulses < 1 ){  // make it 5 or something
+      if (pulse > 0) {     // Please tune this by really understadning what happens in a short move!!! 
+        small_steps = 0;   // Can understand this by generating a short move. 
         filament_errors = 0;
         filament_error = false;
         return;
-      } else {
+      } else { 
         small_steps += steps_e;
         //SERIAL_ECHO("Small steps: ");
         //SERIAL_ECHOLN(small_steps);
         if (small_steps > 3*steps_per_pulse) {
-          //SERIAL_ECHOLN("Missed step in short move");
+          //SERIAL_ECHO("Missed step in short move");
           s_error++;
           filament_errors++;
           small_steps = 0;
-          if (filament_errors > 5 ){
-            //SERIAL_ECHOLN("//action:filament");
+          if (filament_errors > 6 ){
             filament_errors = 0;
             filament_error = true;
             total_s_errors++;
@@ -253,13 +246,15 @@ void checkHitEndstops()
       }
       return;
     }
+    
+
     // If statement for longer steps.
     if (pulse < 0.667*expected_pulses){
-      // SERIAL_ECHOLN("Missed step in long move");
+       //SERIAL_ECHOLN("Missed step in long move");
       filament_errors++;
       l_error++;
-      if (filament_errors > 5 ){
-        //SERIAL_ECHOLN("//action:filament"); 
+      if (filament_errors > 6 ){
+        //SERIAL_ECHO("//action:filament"); 
         filament_errors = 0;
         filament_error = true;
         total_l_errors++;
@@ -269,7 +264,8 @@ void checkHitEndstops()
       filament_errors = 0;
       filament_error = false;
     }
-  }
+      
+  } // end of function
 #endif
 
 void endstops_hit_on_purpose()
