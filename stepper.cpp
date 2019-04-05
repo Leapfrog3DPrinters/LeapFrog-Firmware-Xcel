@@ -222,7 +222,7 @@ void checkHitEndstops()
            
     // Small E-steps as defined to be less than 5. 
     if (expected_pulses < 1 ){  // make it 5 or something
-      if (pulse > 0) {     // Please tune this by really understadning what happens in a short move!!! 
+      if (pulse > 0) {     // Please tune this by really understanding what happens in a short move!!! 
         small_steps = 0;   // Can understand this by generating a short move. 
         filament_errors = 0;
         filament_error = false;
